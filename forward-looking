@@ -1,0 +1,42 @@
+#Attach the working sheet
+attach(workfile)
+
+#Upload necessary packages
+library(graphics) #for boxplot and histogram
+library(stats) #for qq plot and Box-Pierce test
+library(tseries) #for time-series graph
+library(ARDL) #for auto-ardl model
+library(base) #for linear regression model
+library(lmtest) #for BP and DW tests
+library(car) #for vif test
+library(stargazer) #make cool-looking regression tables
+
+#Depict boxplot, histogram, time-series distribution, and qq-plot for identifying potential outliers in dependent variable(s)
+boxplot(dependent variable)
+hist(dependent variable)
+ts.plot(dependent variable)
+qqplot(dependent variable)
+
+#Construct auto-ardl model (auto-regressive distributed lag model)
+MODEL1 <- auto_ardl(dependent variable ~ independent1 + independent2 + independent3, data = workfile, max_order = 4) 
+#max_order stands for maximum number of lags
+
+MODEL1$top_orders #identify optimal lags with Akaike Information Criterion (AIC)
+
+MODEL1final <- MODEL1$best_model #R will identify the best model based on AIC
+
+summary(MODEL1final) #display model output
+
+#after selecting optimal lags from auto_ardl, we build a final linear regression model
+linearmodel <- lm(dependent variable ~ independent1 + independent2, data = workfile)
+summary(linearmodel) #display model output
+
+#cool regression table
+stargazer(linearmodel, type = "text")
+
+#the final stage is robustness checks
+#below are tests for Heteroskedasticity (bptest), Auto-correlation (dwtest and Box.test), and Multicollinearity (vif)
+bptest(linearmodel)
+dwtest(linearmodel)
+vif(linearmodel)
+Box.test(linearmodel)
